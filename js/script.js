@@ -1,20 +1,12 @@
 let wrongGuesses = 0;
-let guessedLetters = [];
 const maxGuesses = 10;
 
+let words = [];
+let randomWord = "";
+let hiddenWord = [];
 
-
-const words = [
-  "apple",
-  "banana",
-  "orange",
-  "grape",
-  "kiwi",
-  "pear",
-  "peach",
-  "plum",
-  "melon",
-  "lemon"];
+//array to keep all words from json file
+let usedWords = [];
 
 const hangmanStages = [
   "./assets/img/h-0.jpg",
@@ -29,36 +21,87 @@ const hangmanStages = [
   "./assets/img/h-9.jpg",
   "./assets/img/h-10.jpg"
 ];
-let randomWord = words[Math.floor(Math.random() * words.length)];
-console.log(randomWord);
 
-const wordDisplay=document.getElementById("wordDisplay");
+const wordDisplay = document.getElementById("wordDisplay");
 const lettersContainer = document.getElementById("lettersContainer");
 const restartBtn = document.getElementById("restartBtn");
+const message = document.getElementById("message");
+const hangmanImg = document.getElementById("hangmanImg");
 
-let hiddenWord = Array(randomWord.length).fill("_");
-
-
-
-wordDisplay.textContent = hiddenWord.join(" ");
+const usedWordsList = document.getElementById("usedWordsList");
 
 const letters = "abcdefghijklmnopqrstuvwxyz".split("");
 
+//read all words from json file
+fetch("./assets/example-words.json")
+  .then((res) => res.json())
+  .then((data) => {
+    words = data;
+    startGame();
+  })
+  .catch((err) => console.error("Error loading JSON:", err));
 
+//Start the game
+  function startGame() {
+  wrongGuesses = 0;
+  message.textContent = "";
 
-letters.forEach(letter => {
-  const button = document.createElement("button");
-  button.textContent = letter;
-  button.classList.add("hangman__button", "letter-btn");
+  randomWord = words[Math.floor(Math.random() * words.length)];
+  hiddenWord = Array(randomWord.length).fill("_");
 
-button.addEventListener("click", () => {
-  button.disabled = true; // prevent repeat clicks
+  wordDisplay.textContent = hiddenWord.join(" ");
+  hangmanImg.src = hangmanStages[0];
 
-  const guess = letter;
-  guessedLetters.push(guess);
+  createKeyboard();
+
+  console.log("New word:", randomWord);
+}
+
+//Keep track of words that have been used already and display them on the screen
+function updateUsedWordsUI() {
+  if (!usedWordsList) return;
+
+  usedWordsList.innerHTML = "";
+
+  usedWords.forEach((item, index) => {
+    const row = document.createElement("tr");
+
+  //keep track of win vs loss here or have the words be different color
+    row.innerHTML = `
+      <td>${index + 1}</td>
+      <td style="color:${item.result === "win" ? "limegreen" : "red"}; font-weight:bold;">
+        ${item.word}
+      </td>
+    `;
+
+    usedWordsList.appendChild(row);
+  });
+}
+
+//Create a keyboard and allow keyboard input
+function createKeyboard() {
+  lettersContainer.innerHTML = "";
+
+  letters.forEach((letter) => {
+    const button = document.createElement("button");
+    button.textContent = letter;
+    button.classList.add("hangman__button", "letter-btn");
+
+    button.addEventListener("click", () => {
+      handleGuess(letter, button);
+    });
+
+    lettersContainer.appendChild(button);
+  });
+}
+
+// Guess logic implemented including disable the letter already gussed
+function handleGuess(guess, button) {
+  button.disabled = true;
 
   if (randomWord.includes(guess)) {
-    // correct guess
+    button.classList.add("correct");
+
     for (let i = 0; i < randomWord.length; i++) {
       if (randomWord[i] === guess) {
         hiddenWord[i] = guess;
@@ -67,59 +110,61 @@ button.addEventListener("click", () => {
 
     wordDisplay.textContent = hiddenWord.join(" ");
   } else {
-    // wrong guess
     wrongGuesses++;
+    button.classList.add("wrong");
 
-    document.getElementById("hangmanImg").src =
-      hangmanStages[wrongGuesses];
+    hangmanImg.src = hangmanStages[wrongGuesses];
   }
 
   checkGameStatus();
-});
-  lettersContainer.appendChild(button);
-});
+}
 
+//Checked the played has gessed all correct letter or not
 function checkGameStatus() {
   if (!hiddenWord.includes("_")) {
-    document.getElementById("message").textContent = "You Win!";
+    message.textContent = "🎉 You Win!";
+    message.style.color = "green";
     disableAllButtons();
+
+    usedWords.push({ word: randomWord, result: "win" });
+    updateUsedWordsUI();
   }
 
   if (wrongGuesses >= maxGuesses) {
-    document.getElementById("message").textContent = "Game Over!";
+    message.textContent = "💀 Game Over!";
+    message.style.color = "red";
     disableAllButtons();
+
+    usedWords.push({ word: randomWord, result: "lose" });
+    updateUsedWordsUI();
   }
 }
+
 function disableAllButtons() {
-  document.querySelectorAll(".letter-btn").forEach(btn => {
+  document.querySelectorAll(".letter-btn").forEach((btn) => {
     btn.disabled = true;
   });
 }
 
+
+
+//Restart the game
+function resetGame() {
+  startGame();
+}
+
 restartBtn.addEventListener("click", resetGame);
 
-function resetGame() {
-  // pick new word
-  randomWord = words[Math.floor(Math.random() * words.length)];
+document.addEventListener("keydown", (event) => {
+  const key = event.key.toLowerCase();
 
-  // reset state
-  wrongGuesses = 0;
-  guessedLetters = [];
+  if (letters.includes(key)) {
+    const button = [...document.querySelectorAll(".letter-btn")].find(
+      (btn) => btn.textContent === key
+    );
 
-  // reset hidden word
-  hiddenWord = Array(randomWord.length).fill("_");
-  wordDisplay.textContent = hiddenWord.join(" ");
-
-  // reset image
-  document.getElementById("hangmanImg").src = hangmanStages[0];
-
-  // reset message
-  document.getElementById("message").textContent = "";
-
-  // enable all buttons again
- document.querySelectorAll(".letter-btn").forEach(btn => {
-  btn.disabled = false;
+    if (button && !button.disabled) {
+      handleGuess(key, button);
+    }
+  }
 });
-
-  console.log("New word:", randomWord);
-}
