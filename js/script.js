@@ -5,21 +5,21 @@ let words = [];
 let randomWord = "";
 let hiddenWord = [];
 
-//array to keep all words from json file
+// array to keep all words from json file
 let usedWords = [];
 
 const hangmanStages = [
-  "./assets/img/h-0.jpg",
-  "./assets/img/h-1.jpg",
-  "./assets/img/h-2.jpg",
-  "./assets/img/h-3.jpg",
-  "./assets/img/h-4.jpg",
-  "./assets/img/h-5.jpg",
-  "./assets/img/h-6.jpg",
-  "./assets/img/h-7.jpg",
-  "./assets/img/h-8.jpg",
-  "./assets/img/h-9.jpg",
-  "./assets/img/h-10.jpg"
+  "./assets/img/h-0.png",
+  "./assets/img/h-1.png",
+  "./assets/img/h-2.png",
+  "./assets/img/h-3.png",
+  "./assets/img/h-4.png",
+  "./assets/img/h-5.png",
+  "./assets/img/h-6.png",
+  "./assets/img/h-7.png",
+  "./assets/img/h-8.png",
+  "./assets/img/h-9.png",
+  "./assets/img/h-10.png"
 ];
 
 const wordDisplay = document.getElementById("wordDisplay");
@@ -27,12 +27,14 @@ const lettersContainer = document.getElementById("lettersContainer");
 const restartBtn = document.getElementById("restartBtn");
 const message = document.getElementById("message");
 const hangmanImg = document.getElementById("hangmanImg");
-
 const usedWordsList = document.getElementById("usedWordsList");
+
+//  attempts display
+const attemptsDisplay = document.getElementById("attempts");
 
 const letters = "abcdefghijklmnopqrstuvwxyz".split("");
 
-//read all words from json file
+// read all words from json file
 fetch("./assets/example-words.json")
   .then((res) => res.json())
   .then((data) => {
@@ -41,8 +43,8 @@ fetch("./assets/example-words.json")
   })
   .catch((err) => console.error("Error loading JSON:", err));
 
-//Start the game
-  function startGame() {
+// Start the game
+function startGame() {
   wrongGuesses = 0;
   message.textContent = "";
 
@@ -53,11 +55,12 @@ fetch("./assets/example-words.json")
   hangmanImg.src = hangmanStages[0];
 
   createKeyboard();
+  updateAttempts(); 
 
   console.log("New word:", randomWord);
 }
 
-//Keep track of words that have been used already and display them on the screen
+// Keep track of words that have been used already and display them on the screen
 function updateUsedWordsUI() {
   if (!usedWordsList) return;
 
@@ -66,7 +69,6 @@ function updateUsedWordsUI() {
   usedWords.forEach((item, index) => {
     const row = document.createElement("tr");
 
-  //keep track of win vs loss here or have the words be different color
     row.innerHTML = `
       <td>${index + 1}</td>
       <td style="color:${item.result === "win" ? "limegreen" : "red"}; font-weight:bold;">
@@ -78,7 +80,7 @@ function updateUsedWordsUI() {
   });
 }
 
-//Create a keyboard and allow keyboard input
+// Create keyboard and allow input
 function createKeyboard() {
   lettersContainer.innerHTML = "";
 
@@ -95,7 +97,7 @@ function createKeyboard() {
   });
 }
 
-// Guess logic implemented including disable the letter already gussed
+// Guess logic
 function handleGuess(guess, button) {
   button.disabled = true;
 
@@ -114,12 +116,14 @@ function handleGuess(guess, button) {
     button.classList.add("wrong");
 
     hangmanImg.src = hangmanStages[wrongGuesses];
+
+    updateAttempts(); 
   }
 
   checkGameStatus();
 }
 
-//Checked the played has gessed all correct letter or not
+// Check win/lose
 function checkGameStatus() {
   if (!hiddenWord.includes("_")) {
     message.textContent = "🎉 You Win!";
@@ -140,21 +144,37 @@ function checkGameStatus() {
   }
 }
 
+// Disable buttons
 function disableAllButtons() {
   document.querySelectorAll(".letter-btn").forEach((btn) => {
     btn.disabled = true;
   });
 }
 
+// Update attempts UI
+function updateAttempts() {
+  if (!attemptsDisplay) return;
 
+  const remaining = maxGuesses - wrongGuesses;
+  attemptsDisplay.textContent = `${remaining} attempts left`;
 
-//Restart the game
+  if (remaining <= 3) {
+    attemptsDisplay.style.color = "red";
+  } else if (remaining <= 6) {
+    attemptsDisplay.style.color = "orange";
+  } else {
+    attemptsDisplay.style.color = "green";
+  }
+}
+
+// Restart game
 function resetGame() {
   startGame();
 }
 
 restartBtn.addEventListener("click", resetGame);
 
+// Keyboard support
 document.addEventListener("keydown", (event) => {
   const key = event.key.toLowerCase();
 

@@ -117,10 +117,7 @@ body {
   transform: scale(1.05);
   box-shadow: 0 0 15px #3DCEFF;
 }
-.hangman {
-  /* RESPONSIVE BASE */
-}
-@media (max-width: 1024px) {
+@media (min-width: 601px) and (max-width: 1024px) {
   .hangman {
     padding: 1rem;
   }
@@ -131,7 +128,6 @@ body {
   }
 }
 
-/* USED WORDS PANEL */
 .used-words-panel {
   position: absolute;
   top: 2rem;
@@ -172,7 +168,7 @@ body {
   background: rgba(61, 206, 255, 0.1);
 }
 
-@media (max-width: 1024px) {
+@media (min-width: 601px) and (max-width: 1024px) {
   .used-words-panel {
     position: static;
     width: 300px;

@@ -8,7 +8,7 @@ $tablet: 1024px;
 }
 
 @mixin tablet {
-  @media (max-width: $tablet) {
+  @media (min-width: 601px) and (max-width: $tablet) {
     @content;
   }
 }

@@ -118,7 +118,7 @@
     }
   }
 
-  /* RESPONSIVE BASE */
+  //RESPONSIVE BASE 
   @include tablet {
     padding: 1rem;
   }
@@ -128,7 +128,7 @@
   }
 }
 
-/* USED WORDS PANEL */
+// USED WORDS PANEL 
 .used-words-panel {
   position: absolute;
   top: 2rem;
